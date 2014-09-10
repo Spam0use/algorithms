@@ -148,13 +148,16 @@ def compute_resilience(ugraph,attack_order):
 	"""
 	graph=copy_graph(ugraph)
 	con=largest_cc(graph)
+	#print con
 	out=[len(con)]
 	for node in attack_order:
-		graph=delete_node(graph,node)
+		#print node
+		delete_node(graph,node)
 		if node not in con:
 			out.append(out[-1])		#node not in largest cc, no change
 		else:
 			con=largest_cc(graph)
+			#print con
 			out.append(len(con))
 	return out
 			
