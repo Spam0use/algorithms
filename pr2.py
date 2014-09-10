@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Provided code for Application portion of Module 2
+algorithmic thinking, Module 2
 """
 
 # general imports
@@ -9,7 +9,7 @@ import random
 import time
 import math
 import matplotlib.pyplot as plt
-
+from collections import deque
 
 ############################################
 # Provided code
@@ -90,8 +90,49 @@ def load_graph(graph_url):
             answer_graph[node].add(int(neighbor))
 
     return answer_graph
+    
+EX_GRAPH1={0:set([1,4,5,3]),1:set([2,6,0,4]),2:set([3,1,5]),3:set([0,2]),4:set([1,0]),5:set([2,0]),6:set([1]),7:set([8]),8:set([7])}
 
+def bfs_visited(ugraph,startnode):
+    """
+    return list of nodes in <ugraph> that are reachable from <startnode>
+    """
+    que=deque()
+    visited=set([startnode])
+    que.append(startnode)
+    while(len(que)>0):
+        idx=que.pop()
+        for neigh in ugraph[idx]:
+            if neigh not in visited:
+                que.append(neigh)
+                visited.add(neigh)
+        # too-clever version, slower by 50%:
+        # newnodes=[neigh for neigh in ugraph[idx] if neigh not in visited]
+        # visited |= set(newnodes)
+        # que.extend(newnodes)
 
+    return visited
+    
+def cc_visited(ugraph):
+    """
+    given undirected graph <ugraph>, return connected components as sets of nodes
+    """
+    nodes=ugraph.keys()
+    con=[]
+    while len(nodes)>0:
+        node=nodes.pop()
+        reachable=bfs_visited(ugraph,node)
+        con.append(reachable)
+        nodes=[node for node in nodes if node not in reachable]
+    return con
+    
+def largest_cc_size(ugraph):
+    """
+    given undirected graph <ugraph>, returns size of largest connected component
+    """
+    ccs=cc_visited(ugraph)
+    return max([len(con) for con in ccs])
+                
     
     
     
