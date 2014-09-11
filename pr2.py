@@ -134,33 +134,36 @@ def largest_cc_size(ugraph):
     return max([len(con) for con in ccs])
     
 def largest_cc(ugraph):
-	"""
-	return largest connected component
-	"""
-	ccs=cc_visited(ugraph)
-	ccsz=[len(itm) for itm in ccs]
-	ccmx=ccsz.index(max(ccsz))
-	return ccs[ccmx]
+    """
+    return largest connected component
+    """
+    ccs=cc_visited(ugraph)
+    if(len(ccs)>0):
+        ccsz=[len(itm) for itm in ccs]
+        ccmx=ccsz.index(max(ccsz))
+        return ccs[ccmx]
+    else:
+        return []
 
 def compute_resilience(ugraph,attack_order):
-	"""
-	assess resiliance of undirected graph <ugraph> by measuring size of largest connected component
-	"""
-	graph=copy_graph(ugraph)
-	con=largest_cc(graph)
-	#print con
-	out=[len(con)]
-	for node in attack_order:
-		#print node
-		delete_node(graph,node)
-		if node not in con:
-			out.append(out[-1])		#node not in largest cc, no change
-		else:
-			con=largest_cc(graph)
-			#print con
-			out.append(len(con))
-	return out
-			
+    """
+    assess resiliance of undirected graph <ugraph> by measuring size of largest connected component
+    """
+    graph=copy_graph(ugraph)
+    con=largest_cc(graph)
+    #print con
+    out=[len(con)]
+    for node in attack_order:
+        #print node
+        delete_node(graph,node)
+        if node not in con:
+            out.append(out[-1])        #node not in largest cc, no change
+        else:
+            con=largest_cc(graph)
+            #print con
+            out.append(len(con))
+    return out
+            
     
     
 
