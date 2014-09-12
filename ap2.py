@@ -25,14 +25,14 @@ def erugraph(nodes,prob):
 def upagraph(n,m):
     ''' 
     preferential attachment random undirected graph of size n 
-    seeded with size m complete graph 
+    seeded with size int(m) complete graph.  fractional m used in poisson process for selecting degree.
     '''
-    #initialize to complete graph of first m nodes (any loss of generality vs using random m nodes?)
-    graph=ap1.make_complete_graph(m)
-    deg=range(m)*m
-    for tail in xrange(m,n):
+    #initialize to complete graph of first int(m) nodes (any loss of generality vs using random m nodes?)
+    graph=ap1.make_complete_graph(int(m))
+    deg=range(int(m))*int(m)
+    for tail in xrange(int(m),n):
         graph[tail]=set([])
-        samp=set([deg[i] for i in np.random.choice(a=len(deg),size=m,replace=True)]) 
+        samp=set([deg[i] for i in np.random.choice(a=len(deg),size=np.random.poisson(m),replace=True)]) 
         graph[tail]=samp
         for head in samp:
             graph[head].add(tail)
@@ -58,24 +58,30 @@ def random_attack(ugraph):
     attacks= np.random.choice(a=nodes,size=len(nodes),replace=False)
     return pr2.compute_resilience(ugraph,attacks)
     
-def resilience_plot_random(thresh=True):
-    plt.plot(np.array(random_attack(net)),color='blue',label='empirical network')
-    plt.plot(np.array(random_attack(simneter)),color='red',label='erdos-renyi, p=0.0017')
-    plt.plot(np.array(random_attack(simnetupa)),color='green',label='preferential attachment, m=2')
+def resilience_plot_random(thresh=True,show=True):
+    plt.plot(np.array(random_attack(net)),color='blue',label='empirical network, |V|=3112')
+    plt.plot(np.array(random_attack(simneter)),color='red',label='erdos-renyi, p=0.0017, |V|=3040')
+    plt.plot(np.array(random_attack(simnetupa)),color='green',label='preferential attachment, m=2.35, |V|=3069')
     if thresh:
         plt.plot(np.arange(1347,1,-1)*.75,color='gray',linestyle='--',label='resilience threshold')
     plt.legend(loc='upper right')
     plt.ylabel('largest connected component size')
     plt.xlabel('number nodes deleted')
     plt.title('resilience of empirical and simulated computer networks')
-    plt.show()
-    
-#generate or load graphs
-if(not os.path.isfile('nets.pkl')):
-    net=pr2.load_graph(pr2.NETWORK_URL) #3112 edges
-    simneter=erugraph(1347,.0017)    #3092 edges
-    simnetupa=upagraph(1347,2)      #2683 edges
-    pickle.dump([net,simneter,simnetupa],open('nets.pkl','wb'))
-else:
-    net,simneter,simnetupa=pickle.load(open('nets.pkl','rb'))
-    
+    if show:
+		plt.show()
+    else:
+		plt.savefig('ap2f1.png')
+
+def samplemaxdegree(graph):
+	""" utility fn, return one node with maximum degree """
+	degs=ap1.compute_in_degrees(graph)
+	maxdeg=max(degs.values())
+	maxnodes=[k for k,v in degs.items() if v==maxdeg]
+	attack=np.random.choice(a=maxnodes,size=1)[0]
+	return attack
+
+def first_targeted_order(ugraph):
+	""" version of tergeted_order.  attacks graph by removing largest-degree node at each step"""
+	graph=pr2.copy_graph(ugraph)
+	cc=pr2.largest_cc(graph)
