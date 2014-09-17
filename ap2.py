@@ -160,7 +160,7 @@ def plottimetargeted(df):
     plt.xlabel('n')
     plt.ylabel('avg time, s')
     plt.legend(loc='upper left')
-    plt.title('execution time of targeted order functions')
+    plt.title('execution time of targeted order functions\n(desktop Python)')
     plt.show()
     plt.close()
     
