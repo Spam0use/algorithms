@@ -18,24 +18,29 @@ def erugraph(nodes,prob):
     '''
     graph={itm:set() for itm in range(nodes)}
     for tail in xrange(nodes):
-        for head in xrange(nodes):
+        for head in xrange(tail+1,nodes):
             rnd=random.random()
-            if (tail != head) and (rnd<prob):    #no self loops
+            if (rnd<prob):   
                 graph[tail].add(head)
                 graph[head].add(tail)
     return graph
 
-def upagraph(n,m):
+def upagraph(n,m,fractm='poisson'):
     ''' 
     preferential attachment random undirected graph of size n 
-    seeded with size int(m) complete graph.  fractional m used in poisson process for selecting degree.
+    seeded with size int(m) complete graph.  
+    fractional m used in poisson process for selecting degree (fractm='poisson',
+     otherwise choose between int(m) and int(m)+1 .
     '''
     #initialize to complete graph of first int(m) nodes (any loss of generality vs using random m nodes?)
     graph=ap1.make_complete_graph(int(m))
     deg=range(int(m))*int(m)
     for tail in xrange(int(m),n):
         graph[tail]=set([])
-        samp=set([deg[i] for i in np.random.choice(a=len(deg),size=np.random.poisson(m),replace=True)]) 
+        if fractm=='poisson':
+            samp=set([deg[i] for i in np.random.choice(a=len(deg),size=np.random.poisson(m),replace=True)]) 
+        else:
+            samp=set([deg[i] for i in np.random.choice(a=len(deg),size=int(m)+1 if np.random.random()<m-int(m) else int(m),replace=True)]) 
         graph[tail]=samp
         for head in samp:
             graph[head].add(tail)
@@ -63,8 +68,8 @@ def random_attack(ugraph):
     
 def resilience_plot_random(thresh=True,show=True):
     plt.plot(np.array(random_attack(net)),color='blue',label='empirical network, |V|=3112')
-    plt.plot(np.array(random_attack(simneter)),color='red',label='erdos-renyi, p=0.0017, |V|=3040')
-    plt.plot(np.array(random_attack(simnetupa)),color='green',label='preferential attachment, m=2.35, |V|=3069')
+    plt.plot(np.array(random_attack(simneter)),color='red',label='erdos-renyi, p=0.0034, |V|=3056')
+    plt.plot(np.array(random_attack(simnetupa)),color='green',label='preferential attachment, m=2.35, |V|=3157')
     if thresh:
         plt.plot(np.arange(1347,1,-1)*.75,color='gray',linestyle='--',label='resilience threshold')
     plt.legend(loc='upper right')
@@ -176,7 +181,7 @@ def plottimetargeted(df):
 
 def plottargetedresilience(show=True,thresh=True):
     plt.plot(pr2.compute_resilience(net,targeted_order(net)),label='empirical',color='blue')
-    plt.plot(pr2.compute_resilience(simneter,targeted_order(simneter)),label='erdos-renyi, p=0.0017',color='red')
+    plt.plot(pr2.compute_resilience(simneter,targeted_order(simneter)),label='erdos-renyi, p=0.0034',color='red')
     plt.plot(pr2.compute_resilience(simnetupa,targeted_order(simnetupa)),label='preferenital attachment, m=2.35',color='green')
     plt.xlabel('number nodes deleted')
     plt.ylabel('largest connected component size')
@@ -213,8 +218,8 @@ def plottargetedresilience(show=True,thresh=True):
 #generate or load graphs
 if(not os.path.isfile('nets.pkl')):
     net=pr2.load_graph(pr2.NETWORK_URL) #3112 edges
-    simneter=erugraph(1347,.0017)    #3092 edges
-    simnetupa=upagraph(1347,2)      #2683 edges
+    simneter=erugraph(1347,.0034)    #3056 edges
+    simnetupa=upagraph(1347,2.35)      #3157 edges
     pickle.dump([net,simneter,simnetupa],open('nets.pkl','wb'))
 else:
     net,simneter,simnetupa=pickle.load(open('nets.pkl','rb'))
