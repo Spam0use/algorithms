@@ -6,6 +6,10 @@ import math
 """
 Cluster class for Module 3
 """
+
+TEST1L=[[111, 10, 10, 10, 1],[112, 10, 11, 10, 2], [113, 11, 10, 10, 1], [114, 12, 12, 10, 1]]
+TEST1C=[Cluster(*x) for x in TEST1L]
+
 class Cluster:
     """
     Class for creating and merging clusters of counties
@@ -158,8 +162,8 @@ kmeans_clustering(cluster_list, num_clusters, num_iterations)
 where cluster_list is a list of clusters in the plane
 """
 
-import math
-import alg_cluster
+#import math
+#import alg_cluster
 
 
 
@@ -183,7 +187,16 @@ def slow_closest_pairs(cluster_list):
     where the cluster_list[idx1] and cluster_list[idx2] have minimum distance dist.   
     
     """
-    return set([(0, 0, 0)])
+    clpr=[(float('inf'),-1,-1)]
+    for cl1 in xrange(len(cluster_list)):
+        for cl2 in xrange(cl1+1,len(cluster_list)):
+            dtup=(cluster_list[cl1].distance(cluster_list[cl2]),cl1,cl2)
+            if dtup[0]<clpr[0][0]:
+                clpr=[dtup]
+            elif dtup[0]==clpr[0][0]:
+                clpr.append(dtup)
+                
+    return set(clpr)
 
 
 def fast_closest_pair(cluster_list):
@@ -191,7 +204,7 @@ def fast_closest_pair(cluster_list):
     Compute a closest pair of clusters in cluster_list
     using O(n log(n)) divide and conquer algorithm
     
-    Returns a tuple (distance, idx1, idx2) with idx1 < idx 2 where
+    Returns a tuple (distance, idx1, idx2) with idx1 < idx2 where
     cluster_list[idx1] and cluster_list[idx2]
     have the smallest distance dist of any pair of clusters
     """
@@ -211,10 +224,21 @@ def fast_closest_pair(cluster_list):
         """
         
         # base case
-        
+        if(len(cluster_list)<=3):
+            return slow_closest_pairs(cluster_list)        
         # divide
+        half=len(horiz_order)/2
+        mid=0.5*(cluster_list[horiz_order[half-1]][1]+cluster_list[horiz_order[half]][1])  #midpoint
+        horizleft=horiz_order[:half]
+        vertleft=[ind for ind in vert if ind in horizleft]
+        horizright=horiz_order[half:]
+        vertright=[ind for ind in vert if ind in horizright]
+        lmin=fast_helper(cluster_list[:half],)
+        dleft=fast_helper(cluster_list,horizleft,vertleft)
+        dright=fast_helper(cluster_list,horizright,vertright)
         
         # conquer
+        dmin=dleft if dleft[0]<dright[0] else dright
             
         return (0, 0, 0)
             
@@ -272,4 +296,4 @@ def kmeans_clustering(cluster_list, num_clusters, num_iterations):
 
 
   
-        
+        
