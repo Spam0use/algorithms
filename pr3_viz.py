@@ -13,11 +13,12 @@ DESKTOP = True
 import math
 import random
 import urllib2
-import alg_cluster
+import pr3
+import os
+import cPickle as pickle
 
 # conditional imports
 if DESKTOP:
-    import alg_project3_solution      # desktop project solution
     import alg_clusters_matplotlib
 else:
     #import userXX_XXXXXXXX as alg_project3_solution   # CodeSkulptor project solution
@@ -115,7 +116,15 @@ def run_example():
     else:
         alg_clusters_simplegui.PlotClusters(data_table, cluster_list)
     
-run_example()
+#run_example()
 
+if(not os.path.isfile('pr3.pkl')):
+    test1L=[[111, 10, 10, 10, 1],[112, 10, 11, 10, 2], [113, 11, 10, 10, 1], [114, 12, 12, 10, 1]]
+    test1=[pr3.Cluster(*x) for x in test1L]
+    data111L=load_data_table(DATA_111_URL)
+    data111=[pr3.Cluster(*x) for x in data111L]
+    pickle.dump([test1,data111],open('pr3.pkl','wb'))
+else:
+    test1,data111=pickle.load(open('pr3.pkl','rb'))
 
 

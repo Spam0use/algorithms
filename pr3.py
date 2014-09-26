@@ -2,13 +2,13 @@
 
 
 import math
+import pickle
+import random
 
 """
 Cluster class for Module 3
 """
 
-TEST1L=[[111, 10, 10, 10, 1],[112, 10, 11, 10, 2], [113, 11, 10, 10, 1], [114, 12, 12, 10, 1]]
-TEST1C=[Cluster(*x) for x in TEST1L]
 
 class Cluster:
     """
@@ -198,7 +198,6 @@ def slow_closest_pairs(cluster_list):
                 
     return set(clpr)
 
-
 def fast_closest_pair(cluster_list):
     """
     Compute a closest pair of clusters in cluster_list
@@ -225,22 +224,45 @@ def fast_closest_pair(cluster_list):
         
         # base case
         if(len(cluster_list)<=3):
-            return slow_closest_pairs(cluster_list)        
+            return random.choice(list(slow_closest_pairs(cluster_list)))
+            
         # divide
         half=len(horiz_order)/2
         mid=0.5*(cluster_list[horiz_order[half-1]][1]+cluster_list[horiz_order[half]][1])  #midpoint
         horizleft=horiz_order[:half]
-        vertleft=[ind for ind in vert if ind in horizleft]
+        vertleft=[ind for ind in vert_order if ind in horizleft]
         horizright=horiz_order[half:]
-        vertright=[ind for ind in vert if ind in horizright]
+        vertright=[ind for ind in vert_order if ind in horizright]
         lmin=fast_helper(cluster_list[:half],)
         dleft=fast_helper(cluster_list,horizleft,vertleft)
         dright=fast_helper(cluster_list,horizright,vertright)
+        dmin=dleft if dleft[0]<=dright[0] else dright
         
         # conquer
-        dmin=dleft if dleft[0]<dright[0] else dright
-            
-        return (0, 0, 0)
+        midset=[]
+        contl=True  #continue to left (or right)
+        contr=True
+        indl=-1 #index in horizleft (or horizright)
+        indr=0
+        while contl or contr:  #search points around midpoint for those w/ dist<d
+            if abs(cluster_list[horizleft[indl]][1]-mid)<dmin:
+                midset.append(horizleft[indl])
+            else:  
+                contl=False
+            if abs(cluster_list[horizright[indr]][1]-mid)<dimin:
+                midset.append(horizright[indr])
+            else:
+                contr=False
+            indl-=1
+            indr+=1
+        
+        vertset=[ind for ind in vert_order if ind in midset]
+        for indu in xrange(len(vertset)-1):
+            for indv in xrange(indu+1,min(indu+3,len(vertset))):
+                dmid=(cluster_list[vertset[indu]].distance(cluster_list[vertset[indv]]),indu,indv)
+                dmin=dmid if dmid[0]<dmin[0] else dmin
+        
+        return dmin  #dist, ind_i, ind_j
             
     # compute list of indices for the clusters ordered in the horizontal direction
     hcoord_and_index = [(cluster_list[idx].horiz_center(), idx) 
@@ -286,7 +308,6 @@ def kmeans_clustering(cluster_list, num_clusters, num_iterations):
     # initialize k-means clusters to be initial clusters with largest populations
 
     return []
-
 
 
     
