@@ -16,6 +16,7 @@ import urllib2
 import pr3
 import os
 import cPickle as pickle
+import pdb
 
 # conditional imports
 if DESKTOP:
@@ -118,13 +119,26 @@ def run_example():
     
 #run_example()
 
+def list2clust(lst):
+    """
+    list of lists to list of clusters
+    """
+    out=[]
+    for i in xrange(len(lst)):
+        itm=lst[i]
+        itm[0]=set([itm[0]])
+        out.append(pr3.Cluster(*itm))
+    return out
+
 if(not os.path.isfile('pr3.pkl')):
-    test1L=[[111, 10, 10, 10, 1],[112, 10, 11, 10, 2], [113, 11, 10, 10, 1], [114, 12, 12, 10, 1]]
-    test1=[pr3.Cluster(*x) for x in test1L]
+    test1L=[[111, 10., 10., 10, 1.],[112, 10., 11., 10, 2.], [113, 11., 10., 10, 1.], [114, 12., 12., 10, 1.]]
+    test1=list2clust(test1L)
+    #test1=[pr3.Cluster(set(x[0]),*x[1:]) for x in test1L]
     data111L=load_data_table(DATA_111_URL)
-    data111=[pr3.Cluster(*x) for x in data111L]
+    data111=list2clust(data111L)
+    #data111=[pr3.Cluster(set(x[0]),*x[1:]) for x in data111L]
     pickle.dump([test1,data111],open('pr3.pkl','wb'))
 else:
     test1,data111=pickle.load(open('pr3.pkl','rb'))
 
-
+
