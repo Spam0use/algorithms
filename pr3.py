@@ -4,6 +4,7 @@
 import math
 import pickle
 import random
+import pdb
 
 """
 Cluster class for Module 3
@@ -30,7 +31,7 @@ class Cluster:
         """
         String representation assuming the module is "alg_cluster".
         """
-        rep = "alg_cluster.Cluster("
+        rep = "pr3.Cluster("
         rep += str(self._fips_codes) + ", "
         rep += str(self._horiz_center) + ", "
         rep += str(self._vert_center) + ", "
@@ -221,19 +222,19 @@ def fast_closest_pair(cluster_list):
         have the smallest distance dist of any pair of clusters
     
         """
+
         
         # base case
-        if(len(cluster_list)<=3):
-            return random.choice(list(slow_closest_pairs(cluster_list)))
-            
+        #print horiz_order
+        if(len(horiz_order)<=3):
+            return random.choice(list(slow_closest_pairs(cluster_list)))          
         # divide
         half=len(horiz_order)/2
-        mid=0.5*(cluster_list[horiz_order[half-1]][1]+cluster_list[horiz_order[half]][1])  #midpoint
+        mid=0.5*(cluster_list[horiz_order[half-1]].horiz_center()+cluster_list[horiz_order[half]].horiz_center())  #midpoint
         horizleft=horiz_order[:half]
         vertleft=[ind for ind in vert_order if ind in horizleft]
         horizright=horiz_order[half:]
         vertright=[ind for ind in vert_order if ind in horizright]
-        lmin=fast_helper(cluster_list[:half],)
         dleft=fast_helper(cluster_list,horizleft,vertleft)
         dright=fast_helper(cluster_list,horizright,vertright)
         dmin=dleft if dleft[0]<=dright[0] else dright
@@ -242,19 +243,27 @@ def fast_closest_pair(cluster_list):
         midset=[]
         contl=True  #continue to left (or right)
         contr=True
-        indl=-1 #index in horizleft (or horizright)
+        indl=len(horizleft)-1 #index in horizleft (or horizright)
         indr=0
         while contl or contr:  #search points around midpoint for those w/ dist<d
-            if abs(cluster_list[horizleft[indl]][1]-mid)<dmin:
+            #print " indl ",str(indl)
+            if abs(cluster_list[horizleft[indl]].horiz_center()-mid)<dmin:
                 midset.append(horizleft[indl])
             else:  
                 contl=False
-            if abs(cluster_list[horizright[indr]][1]-mid)<dimin:
+            #print " indr ",str(indr)
+            if abs(cluster_list[horizright[indr]].horiz_center()-mid)<dmin:
                 midset.append(horizright[indr])
             else:
                 contr=False
-            indl-=1
-            indr+=1
+            if indl>0:
+                indl-=1
+            else:
+                contl=False
+            if indr<len(horizright)-1:
+                indr+=1
+            else:
+                contr=False
         
         vertset=[ind for ind in vert_order if ind in midset]
         for indu in xrange(len(vertset)-1):
@@ -291,7 +300,14 @@ def hierarchical_clustering(cluster_list, num_clusters):
     Output: List of clusters whose length is num_clusters
     """
     
-    return []
+    ncl=len(cluster_list)
+    while ncl>num_clusters:
+        clpr=fast_closest_pair(cluster_list)
+        #pdb.set_trace()
+        cluster_list[clpr[1]].merge_clusters(cluster_list[clpr[2]])
+        del cluster_list[clpr[2]]
+        ncl-=1
+    return cluster_list
 
 
 
@@ -305,8 +321,15 @@ def kmeans_clustering(cluster_list, num_clusters, num_iterations):
     Output: List of clusters whose length is num_clusters
     """
     
-    # initialize k-means clusters to be initial clusters with largest populations
-
+    # initialize k-means clusters to random points
+    #means=random.choice(range(len(clust_list),num_clusters))    #initial clusters assigned to random data points
+    
+    #below only makes sense for grading:  initialize clusters deterministically to largest population counties
+    means=sorted(cluster_list,key=lambda cls: cls.total_population(),reverse=True)[:num_clusters]
+    
+    for itr in xrange(num_iterations):
+        for clst in cluster_list:
+            pass
     return []
 
 
