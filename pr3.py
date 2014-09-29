@@ -1,158 +1,7 @@
 #!/usr/bin/env python
-
-
-import math
-import pickle
-import random
-import pdb
-
 """
-Cluster class for Module 3
-"""
+project 3, nearest neighbors & clusteirng
 
-
-class Cluster:
-    """
-    Class for creating and merging clusters of counties
-    """
-    
-    def __init__(self, fips_codes, horiz_pos, vert_pos, population, risk):
-        """
-        Create a cluster based the models a set of counties' data
-        """
-        self._fips_codes = fips_codes
-        self._horiz_center = horiz_pos
-        self._vert_center = vert_pos
-        self._total_population = population
-        self._averaged_risk = risk
-        
-        
-    def __repr__(self):
-        """
-        String representation assuming the module is "alg_cluster".
-        """
-        rep = "pr3.Cluster("
-        rep += str(self._fips_codes) + ", "
-        rep += str(self._horiz_center) + ", "
-        rep += str(self._vert_center) + ", "
-        rep += str(self._total_population) + ", "
-        rep += str(self._averaged_risk) + ")"
-        return rep
-
-    def __eq__(self, other):
-        if not isinstance(other, Cluster):
-            return False
-        if self._fips_codes != other._fips_codes:
-            return False
-        if self._horiz_center != other._horiz_center:
-            return False
-        if self._vert_center != other._vert_center:
-            return False
-        if self._total_population != other._total_population:
-            return False
-        if self._averaged_risk != other._averaged_risk:
-            return False
-        return True
-
-    def fips_codes(self):
-        """
-        Get the cluster's set of FIPS codes
-        """
-        return self._fips_codes
-    
-    def horiz_center(self):
-        """
-        Get the averged horizontal center of cluster
-        """
-        return self._horiz_center
-    
-    def vert_center(self):
-        """
-        Get the averaged vertical center of the cluster
-        """
-        return self._vert_center
-    
-    def total_population(self):
-        """
-        Get the total population for the cluster
-        """
-        return self._total_population
-    
-    def averaged_risk(self):
-        """
-        Get the averaged risk for the cluster
-        """
-        return self._averaged_risk
-   
-        
-    def copy(self):
-        """
-        Return a copy of a cluster
-        """
-        copy_cluster = Cluster(set(self._fips_codes), self._horiz_center, self._vert_center,
-                               self._total_population, self._averaged_risk)
-        return copy_cluster
-
-
-    def distance(self, other_cluster):
-        """
-        Compute the Euclidean distance between two clusters
-        """
-        vert_dist = self._vert_center - other_cluster.vert_center()
-        horiz_dist = self._horiz_center - other_cluster.horiz_center()
-        return math.sqrt(vert_dist ** 2 + horiz_dist ** 2)
-        
-    def merge_clusters(self, other_cluster):
-        """
-        Merge one cluster into another
-        The merge uses the relatively populations of each
-        cluster in computing a new center and risk
-        
-        Note that this method mutates self
-        """
-        if len(other_cluster.fips_codes()) == 0:
-            return self
-        else:
-            self._fips_codes.update(set(other_cluster.fips_codes()))
- 
-            # compute weights for averaging
-            self_weight = float(self._total_population)                        
-            other_weight = float(other_cluster.total_population())
-            self._total_population = self._total_population + other_cluster.total_population()
-            self_weight /= self._total_population
-            other_weight /= self._total_population
-                    
-            # update center and risk using weights
-            self._vert_center = self_weight * self._vert_center + other_weight * other_cluster.vert_center()
-            self._horiz_center = self_weight * self._horiz_center + other_weight * other_cluster.horiz_center()
-            self._averaged_risk = self_weight * self._averaged_risk + other_weight * other_cluster.averaged_risk()
-            return self
-
-    def cluster_error(self, data_table):
-        """
-        Input: data_table is the original table of cancer data used in creating the cluster.
-        
-        Output: The error as the sum of the square of the distance from each county
-        in the cluster to the cluster center (weighted by its population)
-        """
-        # Build hash table to accelerate error computation
-        fips_to_line = {}
-        for line_idx in range(len(data_table)):
-            line = data_table[line_idx]
-            fips_to_line[line[0]] = line_idx
-        
-        # compute error as weighted squared distance from counties to cluster center
-        total_error = 0
-        counties = self.fips_codes()
-        for county in counties:
-            line = data_table[fips_to_line[county]]
-            singleton_cluster = Cluster(set([line[0]]), line[1], line[2], line[3], line[4])
-            singleton_distance = self.distance(singleton_cluster)
-            total_error += (singleton_distance ** 2) * singleton_cluster.total_population()
-        return total_error
-
-"""
-Template for Project 3
 Student will implement four functions:
 
 slow_closest_pairs(cluster_list)
@@ -163,10 +12,13 @@ kmeans_clustering(cluster_list, num_clusters, num_iterations)
 where cluster_list is a list of clusters in the plane
 """
 
-#import math
-#import alg_cluster
-
-
+import math
+#import pickle
+import random
+#import pdb
+#import os
+#import sys
+import alg_cluster
 
 def pair_distance(cluster_list, idx1, idx2):
     """
@@ -198,8 +50,15 @@ def slow_closest_pairs(cluster_list):
                 clpr.append(dtup)
                 
     return set(clpr)
-
+    
 def fast_closest_pair(cluster_list):
+    """
+    -ive ctrl: run slow instead of fast
+    """
+    scp=slow_closest_pairs(cluster_list)
+    return list(scp)[0]
+
+def fast_closest_pair2(cluster_list):
     """
     Compute a closest pair of clusters in cluster_list
     using O(n log(n)) divide and conquer algorithm
@@ -225,15 +84,14 @@ def fast_closest_pair(cluster_list):
 
         
         # base case
-        #print horiz_order
         if(len(horiz_order)<=3):
-            return random.choice(list(slow_closest_pairs(cluster_list)))          
+            return random.choice(list(slow_closest_pairs([cluster_list[ind] for ind in horiz_order])))          
         # divide
-        half=len(horiz_order)/2
-        mid=0.5*(cluster_list[horiz_order[half-1]].horiz_center()+cluster_list[horiz_order[half]].horiz_center())  #midpoint
+        half=int(math.ceil(len(horiz_order)/2.0))
+        mid=0.5*(cluster_list[horiz_order[half-1]].horiz_center()+cluster_list[horiz_order[half]].horiz_center())  #horiz midpoint
         horizleft=horiz_order[:half]
-        vertleft=[ind for ind in vert_order if ind in horizleft]
         horizright=horiz_order[half:]
+        vertleft=[ind for ind in vert_order if ind in horizleft]
         vertright=[ind for ind in vert_order if ind in horizright]
         dleft=fast_helper(cluster_list,horizleft,vertleft)
         dright=fast_helper(cluster_list,horizright,vertright)
@@ -241,17 +99,15 @@ def fast_closest_pair(cluster_list):
         
         # conquer
         midset=[]
-        contl=True  #continue to left (or right)
+        contl=True  #continue to left (& right)
         contr=True
-        indl=len(horizleft)-1 #index in horizleft (or horizright)
+        indl=len(horizleft)-1 #index in horizleft (& horizright)
         indr=0
         while contl or contr:  #search points around midpoint for those w/ dist<d
-            #print " indl ",str(indl)
             if abs(cluster_list[horizleft[indl]].horiz_center()-mid)<dmin:
                 midset.append(horizleft[indl])
             else:  
                 contl=False
-            #print " indr ",str(indr)
             if abs(cluster_list[horizright[indr]].horiz_center()-mid)<dmin:
                 midset.append(horizright[indr])
             else:
@@ -264,13 +120,21 @@ def fast_closest_pair(cluster_list):
                 indr+=1
             else:
                 contr=False
-        
+        #midset2=[ind for ind in vert_order if cluster_list[ind].horiz_center()-mid<dmin]  #debug, ctrl for above block
         vertset=[ind for ind in vert_order if ind in midset]
-        for indu in xrange(len(vertset)-1):
-            for indv in xrange(indu+1,min(indu+3,len(vertset))):
+        vertsetlen=len(vertset)
+        #vertset2=[ind for ind in vert_order if ind in midset2]
+        #print 'setlen ',vertsetlen,' vs ',len(vertset2)
+        #loop=0
+        for indu in range(vertsetlen-2):
+            #print "indu ", indu
+            for indv in range(indu+1,min(indu+3,vertsetlen-1)):
+                #print "indv ", indv
                 dmid=(cluster_list[vertset[indu]].distance(cluster_list[vertset[indv]]),indu,indv)
-                dmin=dmid if dmid[0]<dmin[0] else dmin
-        
+                if dmid[0]<dmin[0]:
+                    dmin=tuple([itm for itm in list(dmid)])
+                #loop+=1
+        #print ', num loops ',loop,' vs ',(vertsetlen-2)*2-1       
         return dmin  #dist, ind_i, ind_j
             
     # compute list of indices for the clusters ordered in the horizontal direction
@@ -325,12 +189,27 @@ def kmeans_clustering(cluster_list, num_clusters, num_iterations):
     #means=random.choice(range(len(clust_list),num_clusters))    #initial clusters assigned to random data points
     
     #below only makes sense for grading:  initialize clusters deterministically to largest population counties
-    means=sorted(cluster_list,key=lambda cls: cls.total_population(),reverse=True)[:num_clusters]
-    
-    for itr in xrange(num_iterations):
-        for clst in cluster_list:
-            pass
-    return []
+    workinglist=[itm.copy() for itm in cluster_list]
+    workinglist=sorted(workinglist,key=lambda cls: cls.total_population(),reverse=True)
+    means=[itm.copy() for itm in workinglist[:num_clusters] ]   #highest population items
+    startidx=num_clusters   #for first pass, start assigning neighbors after initialized centers
+    for dummy in xrange(num_iterations):
+        membership=[-1]*len(workinglist)    #initialize cluster memberships
+        for itmnum in xrange(startidx,len(workinglist)):
+            itm=workinglist[itmnum]
+            mindist=[float('inf'),-1]
+            for idx,mean in enumerate(means):
+                itmdist=mean.distance(itm)            
+                if itmdist<mindist[0]:
+                    mindist=[itmdist,idx]
+            membership[itmnum]=mindist[1]
+        for idx,itm in enumerate(membership):
+            if itm>=0:
+                means[itm].merge_clusters(workinglist[idx])
+        clustering=[mean.copy() for mean in means] #copy clusters for posterity
+        means=[alg_cluster.Cluster(set([]),itm.horiz_center(),itm.vert_center(),0,0.) for itm in means] #reset means to empty sets
+        startidx=0  #prepare for next round
+    return clustering
 
 
     
