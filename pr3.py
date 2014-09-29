@@ -51,14 +51,14 @@ def slow_closest_pairs(cluster_list):
                 
     return set(clpr)
     
-def fast_closest_pair(cluster_list):
+def fast_closest_pair2(cluster_list):
     """
     -ive ctrl: run slow instead of fast
     """
     scp=slow_closest_pairs(cluster_list)
     return list(scp)[0]
 
-def fast_closest_pair2(cluster_list):
+def fast_closest_pair(cluster_list):
     """
     Compute a closest pair of clusters in cluster_list
     using O(n log(n)) divide and conquer algorithm
