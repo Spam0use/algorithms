@@ -56,8 +56,79 @@ def fast_closest_pair2(cluster_list):
     -ive ctrl: run slow instead of fast
     """
     scp=slow_closest_pairs(cluster_list)
-    return list(scp)[0]
+    return random.choice(list(scp))
 
+def fast_helper(cluster_list, horiz_order, vert_order):
+    """
+    Divide and conquer method for computing distance between closest pair of points
+    Running time is O(n * log(n))
+    
+    horiz_order and vert_order are lists of indices for clusters
+    ordered horizontally and vertically
+    
+    Returns a tuple (distance, idx1, idx2) with idx1 < idx 2 where
+    cluster_list[idx1] and cluster_list[idx2]
+    have the smallest distance dist of any pair of clusters
+
+    """
+
+    
+    # base case
+    if(len(horiz_order)<=3):
+        choice= random.choice(list(slow_closest_pairs([cluster_list[ind] for ind in horiz_order])))
+        return (choice[0],horiz_order[choice[1]],horiz_order[choice[2]])
+      
+    # divide
+    half=int(math.ceil(len(horiz_order)/2.0))
+    mid=0.5*(cluster_list[horiz_order[half-1]].horiz_center()+cluster_list[horiz_order[half]].horiz_center())  #horiz midpoint
+    horizleft=horiz_order[:half]
+    horizright=horiz_order[half:]
+    vertleft=[ind for ind in vert_order if ind in horizleft]
+    vertright=[ind for ind in vert_order if ind in horizright]
+    dleft=fast_helper(cluster_list,horizleft,vertleft)
+    dright=fast_helper(cluster_list,horizright,vertright)
+    dmin=dleft if dleft[0]<dright[0] else dright
+    
+    # conquer
+    
+    # midset=[]
+    # cont=[True,True]  #flag: continue search toward left & right of midpoint
+    # inds=[len(horizleft)-1,0] #indices into horizleft & horizright
+    # while cont[0] or cont[1]:  #search points around midpoint for those w/ dist<d
+        # if abs(cluster_list[horizleft[inds[0]]].horiz_center()-mid)<dmin[0]:
+            # midset.append(horizleft[inds[0]])
+        # else:  
+            # cont[0]=False
+        # if abs(cluster_list[horizright[inds[1]]].horiz_center()-mid)<dmin[0]:
+            # midset.append(horizright[inds[1]])
+        # else:
+            # cont[1]=False
+        # if inds[0]>0:
+            # inds[0]-=1
+        # else:
+            # cont[0]=False
+        # if inds[1]<len(horizright)-1:
+            # inds[1]+=1
+        # else:
+            # cont[1]=False
+    # vertset=[ind for ind in vert_order if ind in midset]
+    
+    #2nd try
+    horizset=[ind for ind in horiz_order if abs(cluster_list[ind].horiz_center()-mid)<dmin[0]]
+    vertset=[ind for ind in vert_order if ind in horizset]
+    
+    #fallback, not optimal
+    # vertset=vert_order  #shouldn't have to scan all items, just those near mid
+    
+    vertsetlen=len(vertset)
+    for indu in xrange(vertsetlen-2):
+        for indv in xrange(indu+1,min(indu+4,vertsetlen-1)):
+            dmid=[cluster_list[vertset[indu]].distance(cluster_list[vertset[indv]]),vertset[indu],vertset[indv]]
+            if dmid[0]<dmin[0]:
+                #pdb.set_trace()
+                dmin=tuple(dmid)
+    return dmin  #dist, ind_i, ind_j    
+    
 def fast_closest_pair(cluster_list):
     """
     Compute a closest pair of clusters in cluster_list
@@ -67,76 +138,7 @@ def fast_closest_pair(cluster_list):
     cluster_list[idx1] and cluster_list[idx2]
     have the smallest distance dist of any pair of clusters
     """
-        
-    def fast_helper(cluster_list, horiz_order, vert_order):
-        """
-        Divide and conquer method for computing distance between closest pair of points
-        Running time is O(n * log(n))
-        
-        horiz_order and vert_order are lists of indices for clusters
-        ordered horizontally and vertically
-        
-        Returns a tuple (distance, idx1, idx2) with idx1 < idx 2 where
-        cluster_list[idx1] and cluster_list[idx2]
-        have the smallest distance dist of any pair of clusters
-    
-        """
-
-        
-        # base case
-        if(len(horiz_order)<=3):
-            return random.choice(list(slow_closest_pairs([cluster_list[ind] for ind in horiz_order])))          
-        # divide
-        half=int(math.ceil(len(horiz_order)/2.0))
-        mid=0.5*(cluster_list[horiz_order[half-1]].horiz_center()+cluster_list[horiz_order[half]].horiz_center())  #horiz midpoint
-        horizleft=horiz_order[:half]
-        horizright=horiz_order[half:]
-        vertleft=[ind for ind in vert_order if ind in horizleft]
-        vertright=[ind for ind in vert_order if ind in horizright]
-        dleft=fast_helper(cluster_list,horizleft,vertleft)
-        dright=fast_helper(cluster_list,horizright,vertright)
-        dmin=dleft if dleft[0]<=dright[0] else dright
-        
-        # conquer
-        midset=[]
-        contl=True  #continue to left (& right)
-        contr=True
-        indl=len(horizleft)-1 #index in horizleft (& horizright)
-        indr=0
-        while contl or contr:  #search points around midpoint for those w/ dist<d
-            if abs(cluster_list[horizleft[indl]].horiz_center()-mid)<dmin:
-                midset.append(horizleft[indl])
-            else:  
-                contl=False
-            if abs(cluster_list[horizright[indr]].horiz_center()-mid)<dmin:
-                midset.append(horizright[indr])
-            else:
-                contr=False
-            if indl>0:
-                indl-=1
-            else:
-                contl=False
-            if indr<len(horizright)-1:
-                indr+=1
-            else:
-                contr=False
-        #midset2=[ind for ind in vert_order if cluster_list[ind].horiz_center()-mid<dmin]  #debug, ctrl for above block
-        vertset=[ind for ind in vert_order if ind in midset]
-        vertsetlen=len(vertset)
-        #vertset2=[ind for ind in vert_order if ind in midset2]
-        #print 'setlen ',vertsetlen,' vs ',len(vertset2)
-        #loop=0
-        for indu in range(vertsetlen-2):
-            #print "indu ", indu
-            for indv in range(indu+1,min(indu+3,vertsetlen-1)):
-                #print "indv ", indv
-                dmid=(cluster_list[vertset[indu]].distance(cluster_list[vertset[indv]]),indu,indv)
-                if dmid[0]<dmin[0]:
-                    dmin=tuple([itm for itm in list(dmid)])
-                #loop+=1
-        #print ', num loops ',loop,' vs ',(vertsetlen-2)*2-1       
-        return dmin  #dist, ind_i, ind_j
-            
+                   
     # compute list of indices for the clusters ordered in the horizontal direction
     hcoord_and_index = [(cluster_list[idx].horiz_center(), idx) 
                         for idx in range(len(cluster_list))]    

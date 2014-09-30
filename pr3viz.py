@@ -138,8 +138,11 @@ if(not os.path.isfile('pr3.pkl')):
     data111=list2clust(data111L)
     data896L=load_data_table(DATA_896_URL)
     data896=list2clust(data896L)
-    pickle.dump([test1,data111],open('pr3.pkl','wb'))
+    data3108L=load_data_table(DATA_3108_URL)
+    data3108=list2clust(data3108L)
+    del test1L,data111L,data896L,data3108L
+    pickle.dump([test1,data111,data896,data3108],open('pr3.pkl','wb'))
 else:
-    test1,data111=pickle.load(open('pr3.pkl','rb'))
+    test1,data111,data896,data3108=pickle.load(open('pr3.pkl','rb'))
 
 
