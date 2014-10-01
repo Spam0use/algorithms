@@ -96,7 +96,7 @@ def run_example():
 
     Set DESKTOP = True/False to use either matplotlib or simplegui
     """
-    data_table = load_data_table(DATA_3108_URL)
+    data_table = load_data_table(DATA_111_URL)
     
     singleton_list = []
     for line in data_table:
@@ -105,11 +105,11 @@ def run_example():
     # cluster_list = sequential_clustering(singleton_list, 15)
     # print "Displaying", len(cluster_list), "sequential clusters"
 
-    cluster_list = pr3.hierarchical_clustering(singleton_list, 9)
-    print "Displaying", len(cluster_list), "hierarchical clusters"
+    # cluster_list = pr3.hierarchical_clustering(singleton_list, 9)
+    # print "Displaying", len(cluster_list), "hierarchical clusters"
 
-    # cluster_list = pr3.kmeans_clustering(singleton_list, 9, 5)
-    # print "Displaying", len(cluster_list), "k-means clusters"
+    cluster_list = pr3.kmeans_clustering(singleton_list, 9, 5)
+    print "Displaying", len(cluster_list), "k-means clusters"
 
             
     # draw the clusters using matplotlib or simplegui
