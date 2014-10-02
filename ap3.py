@@ -73,25 +73,44 @@ def dist_hierarchical_clustering(cluster_list, num_clusters,distrange):
     q10 accessor fn
     """
     inputlist=[x[:] for x in cluster_list]
-    cpy=[x[:] for x in cluster_list]
-    cluster_list=pr3viz.list2clust(cpy)
+    #pdb.set_trace()
+    cluster_list=pr3viz.list2clust(inputlist)
     ncl=len(cluster_list)
     out=[[0]*len(distrange),[0]*len(distrange)]
     outind=0
-    while ncl>num_clusters:
+    while ncl>=num_clusters:
         clpr=pr3.fast_closest_pair(cluster_list)
         cluster_list[clpr[1]].merge_clusters(cluster_list[clpr[2]])
         del cluster_list[clpr[2]]
         if ncl in distrange:
+            #pdb.set_trace()
             out[0][outind]=ncl
             out[1][outind]=sum([cl.cluster_error(inputlist) for cl in cluster_list])        
             outind+=1
-        ncl+=1
+        ncl-=1
     return out
     
-def time_clustering(cluster_list,cluster_range):
+def dist_clustering(cluster_list,cluster_range):
     """
     q10
-    """
-    hcout=dist_hierarchical_clustering(clusterlist,min(cluster_range),cluster_range)
+    """    clusts=pr3viz.list2clust(cluster_list)
+    clustout=dist_hierarchical_clustering(cluster_list,min(cluster_range),cluster_range)
+    clustout.append([0]*len(clustout[0]))  #allocate array for kmeans
+    for i in xrange(len(clustout[0])):
+        k=clustout[0][i]
+        km=pr3.kmeans_clustering(clusts,k,5)
+        clustout[2][i]=sum([cl.cluster_error(cluster_list) for cl in km])
+    return clustout
     
+def q10():
+    for county,url in {111:pr3viz.DATA_111_URL,290:pr3viz.DATA_290_URL}.items(): #,896:pr3viz.DATA_896_URL}.items():
+        dat=pr3viz.load_data_table(url)
+        cl=dist_clustering(dat,range(6,21))
+        plt.plot(cl[0],cl[1],label='hierarchical')
+        plt.plot(cl[0],cl[2],label='k-means')
+        plt.xlabel('num clusters')
+        plt.ylabel('distortion')
+        plt.legend(loc='upper right')
+        plt.title(str(county)+' county data set')
+        plt.show()
+        plt.close()
