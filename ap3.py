@@ -102,8 +102,8 @@ def dist_clustering(cluster_list,cluster_range):
         clustout[2][i]=sum([cl.cluster_error(cluster_list) for cl in km])
     return clustout
     
-def q10():
-    for county,url in {111:pr3viz.DATA_111_URL,290:pr3viz.DATA_290_URL}.items(): #,896:pr3viz.DATA_896_URL}.items():
+def q10(show=True):
+    for county,url in {111:pr3viz.DATA_111_URL,290:pr3viz.DATA_290_URL,896:pr3viz.DATA_896_URL}.items():
         dat=pr3viz.load_data_table(url)
         cl=dist_clustering(dat,range(6,21))
         plt.plot(cl[0],cl[1],label='hierarchical')
@@ -112,5 +112,8 @@ def q10():
         plt.ylabel('distortion')
         plt.legend(loc='upper right')
         plt.title(str(county)+' county data set')
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.savefig('ap3q10_'+str(county)+'.png')
         plt.close()

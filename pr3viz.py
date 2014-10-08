@@ -18,6 +18,7 @@ import os
 import cPickle as pickle
 import pdb
 import alg_cluster
+import copy
 
 # conditional imports
 if DESKTOP:
@@ -126,7 +127,7 @@ def list2clust(lst):
     """
     out=[]
     for i in xrange(len(lst)):
-        itm=lst[i]
+        itm=copy.deepcopy(lst[i])
         itm[0]=set([itm[0]])
         out.append(alg_cluster.Cluster(*itm))
     return out

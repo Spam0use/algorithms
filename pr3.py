@@ -167,7 +167,7 @@ def hierarchical_clustering(cluster_list, num_clusters):
     """
     
     ncl=len(cluster_list)
-    while ncl>num_clusters:
+    while ncl>=num_clusters:
         clpr=fast_closest_pair(cluster_list)
         #pdb.set_trace()
         cluster_list[clpr[1]].merge_clusters(cluster_list[clpr[2]])
