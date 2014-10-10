@@ -99,6 +99,28 @@ def q2():
     hsal=pr4.compute_global_alignment(hspax,pax,pam,pr4.compute_alignment_matrix(hspax,pax,pam))
     return {'dm':pctaligned(dmal[1],dmal[2]),'hs':pctaligned(hsal[1],hsal[2])}
     
+def nulldistribution(x,y,n):
+    """ generate null distribution of alignment between x and y based on permutiona of y"""
+    out={}
+    yl=list(y)
+    for i in range(n):
+        random.shuffle(yl)
+        ys=''.join(yl)
+        #print ys
+        s=pr4.compute_global_alignment(x,ys,pam,pr4.compute_alignment_matrix(x,ys,pam))[0]
+        out[s]=out.get(s,0)+1
+    return out
+    
+def q3(n=1000):
+    distn=nulldistribution(dm,hs,n)
+    scores=np.array(distn.keys())
+    freq=np.array([distn[k] for k in scores])  #necessary?  freq=distn.values() guaranteed to give correct order?
+    plt.bar(scores,freq/float(n))
+    plt.xlabel('score')
+    plt.ylabel('frequency')
+    plt.title('distribution of alignment scores of shuffled sequences')
+    plt.show()
+    
 if(not os.path.isfile('ap4.pkl')):
     pam=read_scoring_matrix(PAM50_URL)
     hs=read_protein(HUMAN_EYELESS_URL)
