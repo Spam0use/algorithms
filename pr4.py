@@ -4,7 +4,7 @@ algorithmic thinking, project 4
 """
 import math
 import random
-import pdb
+#import pdb
 
 def build_scoring_matrix(alphabet='AGCT',diag_score=10,off_diag_score=4,dash_score=-6):
     """scoring matrix
@@ -33,7 +33,7 @@ def compute_alignment_matrix(seq_x='AA',seq_y='TAAT',scoring_matrix=build_scorin
     """
     numx=len(seq_x)+1
     numy=len(seq_y)+1
-    mat=[ [0 for idx1 in range(numy)] for idx2 in range(numx)]
+    mat=[ [0 for dummy1 in range(numy)] for dummy2 in range(numx)]
     for idx in range(1,numx):
         mat[idx][0]=mat[idx-1][0]+scoring_matrix[ seq_x[idx-1] ]['-']
         if not global_flag:
@@ -100,8 +100,8 @@ def compute_local_alignment(seq_x='AA',seq_y='TAAT',scoring_matrix=build_scoring
     
     returns alignment of seq_x & seq_y
     """
-    numx=len(seq_x)
-    numy=len(seq_y)
+    #numx=len(seq_x)
+    #numy=len(seq_y)
     #pdb.set_trace()
     #####find max score in alignment_matrix
     maxscore=[-float('Inf'),0,0]  #traverse alignment matrixand identify maxium score(s)
