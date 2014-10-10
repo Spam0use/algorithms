@@ -120,6 +120,18 @@ def q3(n=1000):
     plt.ylabel('frequency')
     plt.title('distribution of alignment scores of shuffled sequences')
     plt.show()
+    return [scores,freq]
+    
+def editdistance(x,y):
+    alpha='abcdefghijklmnopqrstuvwxyz'
+    am=pr4.build_scoring_matrix(alpha,2,1,0)
+    al=pr4.compute_global_alignment(x,y,am,pr4.compute_alignment_matrix(x,y,am))
+    out=len(x)+len(y)-al[0]
+    return out
+    
+def checkspelling(word,dist,wordlist):
+    out=[x for x in wordlist if editdistance(word,x)<=dist]
+    return out
     
 if(not os.path.isfile('ap4.pkl')):
     pam=read_scoring_matrix(PAM50_URL)
